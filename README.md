@@ -164,12 +164,6 @@ API keys stay server-side (`src/lib/env.ts`). Identical inputs are cached; unit 
 
 ---
 
-## Out of scope (but spec'd)
-
-[`BODYTYPE_SIDEPROJECT_SPEC.md`](BODYTYPE_SIDEPROJECT_SPEC.md) — a future MediaPipe pose + body-shape side project. Intentionally not in the hackathon build.
-
----
-
 ## Author
 
 **Elena Kalinina** — fashion-tech builder. Ten years ago this app was a notebook idea; today the APIs finally close the loop.

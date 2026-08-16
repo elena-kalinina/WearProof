@@ -223,6 +223,20 @@ function ResultsStep({
     <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
       {/* Left: imagery + season */}
       <div className="flex flex-col gap-5">
+        {result.demo && (
+          <figure className="flex flex-col gap-1">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={DEMO_ASSETS.face}
+              alt="Face scan"
+              className="w-full max-h-[220px] rounded-2xl object-cover object-top bg-zinc-100 dark:bg-zinc-800"
+            />
+            <figcaption className="text-center text-xs text-zinc-500">
+              Face scan (color + redness)
+            </figcaption>
+          </figure>
+        )}
+
         {fix ? (
           <BeforeAfter
             before={outfitImage}
@@ -230,12 +244,19 @@ function ResultsStep({
           />
         ) : (
           outfitImage && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={outfitImage}
-              alt="Your outfit"
-              className="w-full min-h-[280px] rounded-2xl object-cover bg-zinc-100 dark:bg-zinc-800"
-            />
+            <figure className="flex flex-col gap-1">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={outfitImage}
+                alt="Your outfit"
+                className="w-full min-h-[280px] max-h-[420px] rounded-2xl object-cover object-top bg-zinc-100 dark:bg-zinc-800"
+              />
+              {result.demo && (
+                <figcaption className="text-center text-xs text-zinc-500">
+                  Outfit shot
+                </figcaption>
+              )}
+            </figure>
           )
         )}
 
@@ -392,13 +413,13 @@ function BeforeAfter({
       <figure className="flex flex-col gap-1">
         {before && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={before} alt="Before" className="w-full min-h-[200px] rounded-xl object-cover bg-zinc-100 dark:bg-zinc-800" />
+          <img src={before} alt="Before" className="w-full min-h-[200px] max-h-[320px] rounded-xl object-cover object-top bg-zinc-100 dark:bg-zinc-800" />
         )}
         <figcaption className="text-center text-xs text-zinc-500">Before</figcaption>
       </figure>
       <figure className="flex flex-col gap-1">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={after} alt="After" className="w-full min-h-[200px] rounded-xl object-cover bg-zinc-100 dark:bg-zinc-800" />
+        <img src={after} alt="After" className="w-full min-h-[200px] max-h-[320px] rounded-xl object-cover object-top bg-zinc-100 dark:bg-zinc-800" />
         <figcaption className="text-center text-xs text-zinc-500">After</figcaption>
       </figure>
     </div>

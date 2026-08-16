@@ -35,7 +35,7 @@ export function Uploader({ label, hint, capture, value, onChange }: UploaderProp
       >
         {value ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={value} alt={label} className="h-full w-full object-cover" />
+          <img src={value} alt={label} className="h-full w-full object-cover object-top" />
         ) : (
           <span className="px-4 text-center text-sm text-zinc-500">{hint}</span>
         )}

@@ -6,7 +6,7 @@ import { fal } from "@fal-ai/client";
 import { env } from "@/lib/env";
 import type { Hex, OutfitPerception } from "@/lib/types";
 import { DEMO_PERCEPTION } from "@/lib/fal/fixtures";
-import { garmentSwatchDataUrl } from "@/lib/fal/swatch";
+import { DEMO_ASSETS } from "@/lib/demo/assets";
 
 export interface FalClient {
   uploadImage(bytes: Uint8Array, contentType: string): Promise<string>;
@@ -72,9 +72,9 @@ class DemoFalClient implements FalClient {
     await sleep(500);
     return structuredClone(DEMO_PERCEPTION);
   }
-  async generateGarment(_prompt: string, hintColor?: Hex): Promise<string> {
+  async generateGarment(_prompt: string, _hintColor?: Hex): Promise<string> {
     await sleep(700);
-    return garmentSwatchDataUrl(hintColor ?? "#4a7c8c");
+    return DEMO_ASSETS.outfitAfter;
   }
 }
 

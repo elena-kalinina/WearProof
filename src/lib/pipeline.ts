@@ -11,6 +11,7 @@ import { scoreOutfit, type ScoreResult } from "@/lib/scoring/score";
 import { createYouCamClient, type GarmentCategory } from "@/lib/youcam/client";
 import { createFalClient } from "@/lib/fal/client";
 import { planRestyle, type RestylePlan, type StyleDirection } from "@/lib/style/signals";
+import { DEMO_ASSETS } from "@/lib/demo/assets";
 
 export interface AnalyzeResult {
   profile: UserProfile;
@@ -25,9 +26,6 @@ export interface AnalyzeResult {
 export interface AnalyzeOptions {
   demo?: boolean;
 }
-
-const DEMO_FACE_URL = "https://demo.local/face.jpg";
-const DEMO_OUTFIT_URL = "https://demo.local/outfit.jpg";
 
 export async function analyze(
   faceUrl: string,
@@ -59,9 +57,9 @@ export async function analyze(
   return { profile, season, perception, score, outfitUrl, demo };
 }
 
-/** Stable URLs for the demo fixture path (no upload needed). */
+/** Stable URLs for the demo fixture path (served from public/demo/). */
 export function demoAnalyzeUrls(): { faceUrl: string; outfitUrl: string } {
-  return { faceUrl: DEMO_FACE_URL, outfitUrl: DEMO_OUTFIT_URL };
+  return { faceUrl: DEMO_ASSETS.face, outfitUrl: DEMO_ASSETS.outfitBefore };
 }
 
 export interface FixResult {

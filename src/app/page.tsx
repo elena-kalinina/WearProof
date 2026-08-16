@@ -7,10 +7,7 @@ import { Uploader } from "@/components/Uploader";
 import { ScoreRing } from "@/components/ScoreRing";
 import { VerdictCard } from "@/components/VerdictCard";
 import { PaletteStrip } from "@/components/PaletteStrip";
-
-// 1x1 transparent PNG; content is ignored in demo mode.
-const DEMO_PNG =
-  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M8AAAMBAQAY3Y2wAAAAAElFTkSuQmCC";
+import { DEMO_ASSETS } from "@/lib/demo/assets";
 
 type Step = "capture" | "analyzing" | "results" | "fixing" | "fixed";
 
@@ -121,9 +118,9 @@ export default function Home() {
           setOutfit={setOutfit}
           onAnalyze={() => runAnalyze(face!, outfit!)}
           onDemo={() => {
-            setFace(DEMO_PNG);
-            setOutfit(DEMO_PNG);
-            runAnalyze(DEMO_PNG, DEMO_PNG, true);
+            setFace(DEMO_ASSETS.face);
+            setOutfit(DEMO_ASSETS.outfitBefore);
+            runAnalyze("", "", true);
           }}
         />
       )}
@@ -237,7 +234,7 @@ function ResultsStep({
             <img
               src={outfitImage}
               alt="Your outfit"
-              className="w-full rounded-2xl object-cover"
+              className="w-full min-h-[280px] rounded-2xl object-cover bg-zinc-100 dark:bg-zinc-800"
             />
           )
         )}
@@ -395,13 +392,13 @@ function BeforeAfter({
       <figure className="flex flex-col gap-1">
         {before && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={before} alt="Before" className="w-full rounded-xl object-cover" />
+          <img src={before} alt="Before" className="w-full min-h-[200px] rounded-xl object-cover bg-zinc-100 dark:bg-zinc-800" />
         )}
         <figcaption className="text-center text-xs text-zinc-500">Before</figcaption>
       </figure>
       <figure className="flex flex-col gap-1">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={after} alt="After" className="w-full rounded-xl object-cover" />
+        <img src={after} alt="After" className="w-full min-h-[200px] rounded-xl object-cover bg-zinc-100 dark:bg-zinc-800" />
         <figcaption className="text-center text-xs text-zinc-500">After</figcaption>
       </figure>
     </div>

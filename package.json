@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "probe": "node --env-file-if-exists=.env.local --import tsx scripts/probe-youcam.ts",
+    "generate:demo": "node --env-file-if-exists=.env.local --import tsx scripts/generate-demo-assets.ts",
     "test:color": "node --import tsx scripts/test-color.ts",
     "test:pipeline": "DEMO_MODE=1 node --import tsx scripts/test-pipeline.ts",
     "test:style": "DEMO_MODE=1 node --import tsx scripts/test-style.ts",

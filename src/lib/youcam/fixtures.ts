@@ -20,10 +20,12 @@ export const SKIN_FIXTURE = {
   redness: 77, // hd_redness ui_score from the docs example
 };
 
+import { DEMO_ASSETS } from "@/lib/demo/assets";
+
 /**
- * In demo mode we can't run a real try-on, so we surface the target garment
- * image as the stand-in "after". The UI labels it as a demo result.
+ * In demo mode we can't run a real try-on, so we show a pre-generated
+ * "after" outfit image that matches the fix narrative.
  */
-export function tryOnFixture(refGarmentUrl: string): string {
-  return refGarmentUrl;
+export function tryOnFixture(_refGarmentUrl: string): string {
+  return DEMO_ASSETS.outfitAfter;
 }

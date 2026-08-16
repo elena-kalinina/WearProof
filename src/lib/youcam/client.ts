@@ -6,7 +6,7 @@
 //    field names during the hour-0 validation once the key is live).
 //  - DemoYouCamClient: serves recorded fixtures so the pipeline runs today.
 
-import { env } from "@/lib/env";
+import { env, getYouCamBearerTokens } from "@/lib/env";
 import type { Hex } from "@/lib/types";
 import { FACE_FIXTURE, SKIN_FIXTURE, tryOnFixture } from "@/lib/youcam/fixtures";
 import { spendUnits } from "@/lib/youcam/budget";
@@ -59,17 +59,42 @@ interface TaskStatusResponse {
 }
 
 class RealYouCamClient implements YouCamClient {
-  private headers() {
+  private activeToken = getYouCamBearerTokens()[0] ?? "";
+
+  private headers(token = this.activeToken): Record<string, string> {
     return {
-      Authorization: `Bearer ${env.youcamApiKey}`,
+      Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     };
   }
 
+  /** Fetch with Bearer auth; on 401, retry other configured tokens. */
+  private async youcamFetch(
+    url: string,
+    init: RequestInit = {},
+  ): Promise<Response> {
+    const tokens = getYouCamBearerTokens();
+    if (!tokens.length) {
+      throw new Error("No YouCam API key configured.");
+    }
+    let last: Response | undefined;
+    for (const token of tokens) {
+      const res = await fetch(url, {
+        ...init,
+        headers: { ...this.headers(token), ...(init.headers as Record<string, string>) },
+      });
+      if (res.status !== 401) {
+        this.activeToken = token;
+        return res;
+      }
+      last = res;
+    }
+    return last!;
+  }
+
   private async startTask(path: string, body: unknown): Promise<string> {
-    const res = await fetch(`${env.youcamBaseUrl}${path}`, {
+    const res = await this.youcamFetch(`${env.youcamBaseUrl}${path}`, {
       method: "POST",
-      headers: this.headers(),
       body: JSON.stringify(body),
     });
     const json = (await res.json()) as { data?: { task_id?: string }; error?: string };
@@ -88,9 +113,7 @@ class RealYouCamClient implements YouCamClient {
     const deadline = Date.now() + timeoutMs;
     // Polling is mandatory: an un-polled task expires and still consumes units.
     while (Date.now() < deadline) {
-      const res = await fetch(`${env.youcamBaseUrl}${path}/${taskId}`, {
-        headers: this.headers(),
-      });
+      const res = await this.youcamFetch(`${env.youcamBaseUrl}${path}/${taskId}`);
       const json = (await res.json()) as TaskStatusResponse;
       const st = json.data?.task_status;
       if (st === "success") {

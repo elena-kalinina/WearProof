@@ -143,8 +143,8 @@ export async function restyle(
 ): Promise<RestyleResult> {
   const demo = prev.demo ?? false;
   const scenario = prev.demoScenario ?? DEFAULT_DEMO_SCENARIO;
-  const fal = createFalClient(demo, scenario);
-  const youcam = createYouCamClient(demo, scenario);
+  const fal = createFalClient(demo, scenario, direction);
+  const youcam = createYouCamClient(demo, scenario, direction);
 
   const focus = prev.perception.garments[prev.perception.focusIndex];
   const plan = planRestyle(focus, direction, prev.season);

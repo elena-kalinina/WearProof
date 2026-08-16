@@ -2,6 +2,7 @@
 
 import type { OutfitPerception } from "@/lib/types";
 import type { Hex } from "@/lib/types";
+import type { StyleDirection } from "@/lib/style/signals";
 
 export type DemoScenarioId = "color-clash" | "garment-clash";
 
@@ -23,18 +24,31 @@ export interface DemoScenario {
     face: string;
     outfitBefore: string;
     outfitAfter: string;
+    /** Style-playground outcome per direction, so each move shows its own tone. */
+    restyle: Record<StyleDirection, string>;
   };
+}
+
+/** Which scripted result a demo client should hand back for the current call. */
+export type DemoOutcome = "fix" | StyleDirection;
+
+export function getDemoOutcomeAsset(
+  id: DemoScenarioId,
+  outcome: DemoOutcome,
+): string {
+  const { assets } = getDemoScenario(id);
+  return outcome === "fix" ? assets.outfitAfter : assets.restyle[outcome];
 }
 
 export const DEMO_SCENARIOS: Record<DemoScenarioId, DemoScenario> = {
   "color-clash": {
     id: "color-clash",
     label: "Demo: color clash",
-    hint: "Warm red top amplifies facial redness (53 → 96)",
+    hint: "Off-season wine top, worsened by facial redness (39 → 96)",
     face: {
-      skinColor: "#b28e73",
-      hairColor: "#3b2a20",
-      eyeColor: "#5a4632",
+      skinColor: "#eec49a",
+      hairColor: "#a9743f",
+      eyeColor: "#9a7b3f",
       faceShape: "oval",
     },
     skin: { redness: 77 },
@@ -42,7 +56,7 @@ export const DEMO_SCENARIOS: Record<DemoScenarioId, DemoScenario> = {
       garments: [
         {
           item: "top",
-          color: "#c0392b",
+          color: "#6d2833",
           category: "upper_body",
           descriptors: ["fitted", "crew"],
         },
@@ -50,9 +64,13 @@ export const DEMO_SCENARIOS: Record<DemoScenarioId, DemoScenario> = {
       focusIndex: 0,
     },
     assets: {
-      face: "/demo/face.jpg",
-      outfitBefore: "/demo/color-outfit-before.jpg",
-      outfitAfter: "/demo/color-outfit-after.jpg",
+      face: "/demo/face.jpg?v=5",
+      outfitBefore: "/demo/color-outfit-before.jpg?v=5",
+      outfitAfter: "/demo/color-outfit-after.jpg?v=5",
+      restyle: {
+        edgier: "/demo/color-restyle-edgier.jpg?v=5",
+        classier: "/demo/color-restyle-classier.jpg?v=5",
+      },
     },
   },
   "garment-clash": {
@@ -60,9 +78,9 @@ export const DEMO_SCENARIOS: Record<DemoScenarioId, DemoScenario> = {
     label: "Demo: garment clash",
     hint: "Crew neck fights a round face — swap the neckline",
     face: {
-      skinColor: "#b28e73",
-      hairColor: "#3b2a20",
-      eyeColor: "#5a4632",
+      skinColor: "#e8bd94",
+      hairColor: "#b8834a",
+      eyeColor: "#8a6a35",
       faceShape: "round",
     },
     skin: { redness: 38 },
@@ -78,9 +96,13 @@ export const DEMO_SCENARIOS: Record<DemoScenarioId, DemoScenario> = {
       focusIndex: 0,
     },
     assets: {
-      face: "/demo/face.jpg",
-      outfitBefore: "/demo/garment-outfit-before.jpg",
-      outfitAfter: "/demo/garment-outfit-after.jpg",
+      face: "/demo/garment-face.jpg?v=5",
+      outfitBefore: "/demo/garment-outfit-before.jpg?v=5",
+      outfitAfter: "/demo/garment-outfit-after.jpg?v=5",
+      restyle: {
+        edgier: "/demo/garment-restyle-edgier.jpg?v=5",
+        classier: "/demo/garment-restyle-classier.jpg?v=5",
+      },
     },
   },
 };

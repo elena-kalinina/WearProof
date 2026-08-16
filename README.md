@@ -31,7 +31,7 @@ Every verdict is a measured number — CIEDE2000 color distance, a redness score
 | **Fix & prove loop** | fal generates garment → YouCam `cloth-v3` try-on → re-score |
 | **Style playground** *(experimental)* | “Edgier” / “classier” moves along measured style axes, still on-palette |
 
-Works on **phone or laptop** — upload or capture both photos in the browser.
+Works on **phone or laptop** — upload or use the live camera for both photos in the browser.
 
 ---
 
@@ -49,7 +49,7 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-**No API keys?** The app runs in demo mode end-to-end. Click **“Use demo photos”** on the landing screen — fixtures and demo fallbacks cover the full analyze → fix → score-climb loop.
+**No API keys?** The app runs in demo mode end-to-end. On the landing screen, try **Demo: color clash** or **Demo: garment clash** — fixtures cover the full analyze → fix → score-climb loop (and the style playground).
 
 ---
 
@@ -83,11 +83,14 @@ UNIT_BUDGET=300      # soft cap on YouCam units per server process
 
 ## How to use it
 
-1. **Face scan** — close-up, front-facing, good light.
-2. **Outfit shot** — upper body, facing forward.
+1. **Face scan** — close-up, front-facing, even light. Use **Upload** or **Use camera**.
+   - **Important:** YouCam’s face analysis needs a tight crop. The face should fill **more than 60% of the image width**. If the face is too small or far away, the API returns an error. Frame from forehead to chin, shoulders optional.
+2. **Outfit shot** — upper body, facing forward (upload or camera).
 3. **Analyze** — season, palette, per-garment verdicts, overall match score.
 4. **Fix the worst clash** — generate corrected top, try-on, watch the score climb.
 5. *(Optional)* **Style playground** — nudge edgier or classier on measured axes.
+
+**Camera tip:** Live capture needs `https` or `localhost`. On a phone, allow camera access when prompted.
 
 ---
 

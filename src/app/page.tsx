@@ -182,14 +182,14 @@ function CaptureStep({
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <Uploader
           label="1. Face scan"
-          hint="Close-up, front-facing, good light. Tap to upload or take a photo."
+          hint="Close-up, front-facing, even light — no strong colour cast."
           capture="user"
           value={face}
           onChange={setFace}
         />
         <Uploader
           label="2. Outfit shot"
-          hint="Upper body, facing forward. Tap to upload or capture."
+          hint="Upper body, facing forward, garment fully visible."
           capture="environment"
           value={outfit}
           onChange={setOutfit}
@@ -258,12 +258,10 @@ function ResultsStep({
       <div className="flex flex-col gap-5">
         {result.demo && demoFace && (
           <figure className="flex flex-col gap-1">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={demoFace}
-              alt="Face scan"
-              className="w-full max-h-[220px] rounded-2xl object-cover object-top bg-zinc-100 dark:bg-zinc-800"
-            />
+            <div className="flex h-[260px] items-center justify-center overflow-hidden rounded-2xl bg-zinc-100 dark:bg-zinc-800">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={demoFace} alt="Face scan" className="h-full w-auto object-contain" />
+            </div>
             <figcaption className="text-center text-xs text-zinc-500">
               Face scan (color + redness)
             </figcaption>
@@ -278,12 +276,10 @@ function ResultsStep({
         ) : (
           outfitImage && (
             <figure className="flex flex-col gap-1">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={outfitImage}
-                alt="Your outfit"
-                className="w-full min-h-[280px] max-h-[420px] rounded-2xl object-cover object-top bg-zinc-100 dark:bg-zinc-800"
-              />
+              <div className="flex h-[420px] items-center justify-center overflow-hidden rounded-2xl bg-zinc-100 dark:bg-zinc-800">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={outfitImage} alt="Your outfit" className="h-full w-auto object-contain" />
+              </div>
               {result.demo && (
                 <figcaption className="text-center text-xs text-zinc-500">
                   Outfit shot
@@ -444,15 +440,19 @@ function BeforeAfter({
   return (
     <div className="grid grid-cols-2 gap-3">
       <figure className="flex flex-col gap-1">
-        {before && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={before} alt="Before" className="w-full min-h-[200px] max-h-[320px] rounded-xl object-cover object-top bg-zinc-100 dark:bg-zinc-800" />
-        )}
+        <div className="flex h-[320px] items-center justify-center overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800">
+          {before && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={before} alt="Before" className="h-full w-auto object-contain" />
+          )}
+        </div>
         <figcaption className="text-center text-xs text-zinc-500">Before</figcaption>
       </figure>
       <figure className="flex flex-col gap-1">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={after} alt="After" className="w-full min-h-[200px] max-h-[320px] rounded-xl object-cover object-top bg-zinc-100 dark:bg-zinc-800" />
+        <div className="flex h-[320px] items-center justify-center overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={after} alt="After" className="h-full w-auto object-contain" />
+        </div>
         <figcaption className="text-center text-xs text-zinc-500">After</figcaption>
       </figure>
     </div>

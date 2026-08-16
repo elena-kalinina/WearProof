@@ -7,7 +7,9 @@ import { env } from "@/lib/env";
 import type { Hex, OutfitPerception } from "@/lib/types";
 import {
   DEFAULT_DEMO_SCENARIO,
+  getDemoOutcomeAsset,
   getDemoScenario,
+  type DemoOutcome,
   type DemoScenarioId,
 } from "@/lib/demo/scenarios";
 
@@ -18,7 +20,9 @@ export interface FalClient {
 }
 
 const VISION_MODEL = "google/gemini-2.5-flash";
-const IMAGE_MODEL = "fal-ai/flux/schnell";
+// schnell renders garments too loosely for VTO to key off cleanly; v1.1 holds
+// the neckline and color the scoring engine asked for.
+const IMAGE_MODEL = "fal-ai/flux-pro/v1.1";
 
 const PERCEPTION_PROMPT = `You are a fashion cataloguer. Look at the outfit in the image and return ONLY strict JSON (no markdown, no prose) of this exact shape:
 {"garments":[{"item":"top|shirt|jacket|dress|pants|skirt|shoes","color":"#rrggbb","category":"upper_body|lower_body|full_body|shoes","descriptors":["short","adjectives"]}],"focusIndex":0}
@@ -67,7 +71,10 @@ class RealFalClient implements FalClient {
 }
 
 class DemoFalClient implements FalClient {
-  constructor(private scenarioId: DemoScenarioId = DEFAULT_DEMO_SCENARIO) {}
+  constructor(
+    private scenarioId: DemoScenarioId = DEFAULT_DEMO_SCENARIO,
+    private outcome: DemoOutcome = "fix",
+  ) {}
 
   async uploadImage(): Promise<string> {
     return "https://demo.local/uploaded-image.jpg";
@@ -76,9 +83,9 @@ class DemoFalClient implements FalClient {
     await sleep(500);
     return structuredClone(getDemoScenario(this.scenarioId).perception);
   }
-  async generateGarment(_prompt: string, _hintColor?: Hex): Promise<string> {
+  async generateGarment(): Promise<string> {
     await sleep(700);
-    return getDemoScenario(this.scenarioId).assets.outfitAfter;
+    return getDemoOutcomeAsset(this.scenarioId, this.outcome);
   }
 }
 
@@ -116,12 +123,16 @@ export function getFalClient(): FalClient {
   return cached;
 }
 
-/** Per-request client; pass demoScenario when using scripted demo stories. */
+/**
+ * Per-request client; pass demoScenario when using scripted demo stories, and
+ * `outcome` so a restyle move returns its own frame instead of the color fix.
+ */
 export function createFalClient(
   demo = false,
   demoScenario: DemoScenarioId = DEFAULT_DEMO_SCENARIO,
+  outcome: DemoOutcome = "fix",
 ): FalClient {
-  if (demo || !env.falKey) return new DemoFalClient(demoScenario);
+  if (demo || !env.falKey) return new DemoFalClient(demoScenario, outcome);
   return getFalClient();
 }
 

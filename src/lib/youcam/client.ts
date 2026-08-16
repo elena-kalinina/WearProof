@@ -9,7 +9,9 @@
 import { env, getYouCamBearerTokens } from "@/lib/env";
 import {
   DEFAULT_DEMO_SCENARIO,
+  getDemoOutcomeAsset,
   getDemoScenario,
+  type DemoOutcome,
   type DemoScenarioId,
 } from "@/lib/demo/scenarios";
 import type { Hex } from "@/lib/types";
@@ -199,7 +201,10 @@ function extractRedness(data: TaskStatusResponse["data"]): number {
 // --- Demo client ---------------------------------------------------------
 
 class DemoYouCamClient implements YouCamClient {
-  constructor(private scenarioId: DemoScenarioId = DEFAULT_DEMO_SCENARIO) {}
+  constructor(
+    private scenarioId: DemoScenarioId = DEFAULT_DEMO_SCENARIO,
+    private outcome: DemoOutcome = "fix",
+  ) {}
 
   async analyzeFace(): Promise<FaceAnalysis> {
     await sleep(400);
@@ -215,14 +220,9 @@ class DemoYouCamClient implements YouCamClient {
     await sleep(400);
     return { ...getDemoScenario(this.scenarioId).skin };
   }
-  async tryOn(
-    _srcImageUrl: string,
-    _refGarmentUrl: string,
-  ): Promise<TryOnResult> {
+  async tryOn(): Promise<TryOnResult> {
     await sleep(800);
-    return {
-      resultUrl: getDemoScenario(this.scenarioId).assets.outfitAfter,
-    };
+    return { resultUrl: getDemoOutcomeAsset(this.scenarioId, this.outcome) };
   }
 }
 
@@ -233,12 +233,16 @@ export function getYouCamClient(): YouCamClient {
   return cached;
 }
 
-/** Per-request client; pass demoScenario when using scripted demo stories. */
+/**
+ * Per-request client; pass demoScenario when using scripted demo stories, and
+ * `outcome` so a restyle move returns its own frame instead of the color fix.
+ */
 export function createYouCamClient(
   demo = false,
   demoScenario: DemoScenarioId = DEFAULT_DEMO_SCENARIO,
+  outcome: DemoOutcome = "fix",
 ): YouCamClient {
-  if (demo || env.demoMode) return new DemoYouCamClient(demoScenario);
+  if (demo || env.demoMode) return new DemoYouCamClient(demoScenario, outcome);
   return getYouCamClient();
 }
 

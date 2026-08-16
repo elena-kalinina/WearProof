@@ -168,6 +168,37 @@ function necklineVerdict(focus: Garment, faceShape?: string): Verdict | null {
   };
 }
 
+/** Shortest angular distance between two hues, in degrees. */
+function hueDistance(a: number, b: number): number {
+  const d = Math.abs(((a - b) % 360) + 360) % 360;
+  return d > 180 ? 360 - d : d;
+}
+
+/**
+ * Rank a palette swatch as a replacement for the focus garment.
+ * Keeps the outfit's value so the silhouette reads the same, rewards staying
+ * on the season's temperature, and — when facial redness is the problem —
+ * rewards hues near red's complement, which optically cancel it.
+ */
+function rankCandidate(
+  candidate: Hex,
+  focusColor: Hex,
+  seasonTemp: "warm" | "cool",
+  avoidWarmRed: boolean,
+): number {
+  const { L, h } = hexToLch(candidate);
+  const gL = hexToLch(focusColor).L;
+
+  let score = 100 - Math.abs(L - gL) * 0.6;
+  if (garmentTemperature(candidate) === seasonTemp) score += 14;
+  if (avoidWarmRed) {
+    // Facial red sits near hue 25 deg; its complement (~185 deg, the
+    // green-teal band) neutralizes it most strongly.
+    score += Math.max(0, 30 - hueDistance(h, 185) / 3);
+  }
+  return score;
+}
+
 function buildSuggestion(
   season: SeasonResult,
   focus: Garment,
@@ -182,15 +213,23 @@ function buildSuggestion(
     ? season.palette.filter((p) => !isWarmRed(p))
     : season.palette;
   const pool = candidates.length ? candidates : season.palette;
+  const seasonTemp = seasonTemperature(season.season);
 
-  const gL = hexToLch(focus.color).L;
-  let target = pool[0];
-  let bestDiff = Infinity;
-  for (const p of pool) {
-    const diff = Math.abs(hexToLch(p).L - gL);
-    if (diff < bestDiff) {
-      bestDiff = diff;
-      target = p;
+  // A neckline-only fix must not also move the color, or the before/after
+  // stops isolating the thing we claim to be fixing.
+  const keepColor =
+    worst.id === "neckline" &&
+    nearestPaletteColor(focus.color, season.palette).deltaE <= 12;
+
+  let target = keepColor ? focus.color : pool[0];
+  if (!keepColor) {
+    let bestRank = -Infinity;
+    for (const p of pool) {
+      const rank = rankCandidate(p, focus.color, seasonTemp, avoidWarmRed);
+      if (rank > bestRank) {
+        bestRank = rank;
+        target = p;
+      }
     }
   }
 

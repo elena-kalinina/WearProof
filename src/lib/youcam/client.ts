@@ -218,6 +218,12 @@ export function getYouCamClient(): YouCamClient {
   return cached;
 }
 
+/** Per-request client; use `demo: true` for fixture data (e.g. "Use demo photos"). */
+export function createYouCamClient(demo = false): YouCamClient {
+  if (demo || env.demoMode) return new DemoYouCamClient();
+  return getYouCamClient();
+}
+
 function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
 }

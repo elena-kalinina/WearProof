@@ -24,14 +24,18 @@ export default function Home() {
   const [styleLoading, setStyleLoading] = useState<StyleDirection | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function runAnalyze(faceImg: string, outfitImg: string) {
+  async function runAnalyze(faceImg: string, outfitImg: string, demo = false) {
     setError(null);
     setStep("analyzing");
     try {
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ faceImage: faceImg, outfitImage: outfitImg }),
+        body: JSON.stringify(
+          demo
+            ? { demo: true }
+            : { faceImage: faceImg, outfitImage: outfitImg },
+        ),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Analysis failed");
@@ -116,7 +120,11 @@ export default function Home() {
           setFace={setFace}
           setOutfit={setOutfit}
           onAnalyze={() => runAnalyze(face!, outfit!)}
-          onDemo={() => runAnalyze(DEMO_PNG, DEMO_PNG)}
+          onDemo={() => {
+            setFace(DEMO_PNG);
+            setOutfit(DEMO_PNG);
+            runAnalyze(DEMO_PNG, DEMO_PNG, true);
+          }}
         />
       )}
 

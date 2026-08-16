@@ -1,4 +1,4 @@
-import { analyze } from "@/lib/pipeline";
+import { analyze, demoAnalyzeUrls } from "@/lib/pipeline";
 import { getFalClient } from "@/lib/fal/client";
 import { decodeDataUrl, hashKey } from "@/lib/image";
 import { cached } from "@/lib/cache";
@@ -7,13 +7,25 @@ export const runtime = "nodejs";
 export const maxDuration = 120;
 
 interface AnalyzeBody {
-  faceImage: string;
-  outfitImage: string;
+  faceImage?: string;
+  outfitImage?: string;
+  /** Use recorded fixtures — works even when API keys are set. */
+  demo?: boolean;
 }
 
 export async function POST(request: Request) {
   try {
-    const { faceImage, outfitImage } = (await request.json()) as AnalyzeBody;
+    const body = (await request.json()) as AnalyzeBody;
+
+    if (body.demo) {
+      const { faceUrl, outfitUrl } = demoAnalyzeUrls();
+      const result = await cached("analyze:demo", () =>
+        analyze(faceUrl, outfitUrl, { demo: true }),
+      );
+      return Response.json(result);
+    }
+
+    const { faceImage, outfitImage } = body;
     if (!faceImage || !outfitImage) {
       return Response.json(
         { error: "faceImage and outfitImage (data URLs) are required." },

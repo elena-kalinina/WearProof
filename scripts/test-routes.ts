@@ -17,7 +17,7 @@ function req(body: unknown): Request {
 }
 
 async function main() {
-  const aRes = await analyzePOST(req({ faceImage: DEMO_PNG, outfitImage: DEMO_PNG }));
+  const aRes = await analyzePOST(req({ demo: true }));
   if (aRes.status !== 200) {
     console.error("analyze status", aRes.status, await aRes.text());
     process.exit(1);

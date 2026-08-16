@@ -8,8 +8,8 @@ import type {
 } from "@/lib/types";
 import { analyzeProfile } from "@/lib/color/seasons";
 import { scoreOutfit, type ScoreResult } from "@/lib/scoring/score";
-import { getYouCamClient, type GarmentCategory } from "@/lib/youcam/client";
-import { getFalClient } from "@/lib/fal/client";
+import { createYouCamClient, type GarmentCategory } from "@/lib/youcam/client";
+import { createFalClient } from "@/lib/fal/client";
 import { planRestyle, type RestylePlan, type StyleDirection } from "@/lib/style/signals";
 
 export interface AnalyzeResult {
@@ -18,14 +18,25 @@ export interface AnalyzeResult {
   perception: OutfitPerception;
   score: ScoreResult;
   outfitUrl: string;
+  /** Set when run with demo fixtures (UI "Use demo photos"). */
+  demo?: boolean;
 }
+
+export interface AnalyzeOptions {
+  demo?: boolean;
+}
+
+const DEMO_FACE_URL = "https://demo.local/face.jpg";
+const DEMO_OUTFIT_URL = "https://demo.local/outfit.jpg";
 
 export async function analyze(
   faceUrl: string,
   outfitUrl: string,
+  options?: AnalyzeOptions,
 ): Promise<AnalyzeResult> {
-  const youcam = getYouCamClient();
-  const fal = getFalClient();
+  const demo = options?.demo ?? false;
+  const youcam = createYouCamClient(demo);
+  const fal = createFalClient(demo);
 
   // Face measurement + redness run in parallel; perception too.
   const [face, skin, perception] = await Promise.all([
@@ -45,7 +56,12 @@ export async function analyze(
   const season = analyzeProfile(profile);
   const score = scoreOutfit(season, profile, perception);
 
-  return { profile, season, perception, score, outfitUrl };
+  return { profile, season, perception, score, outfitUrl, demo };
+}
+
+/** Stable URLs for the demo fixture path (no upload needed). */
+export function demoAnalyzeUrls(): { faceUrl: string; outfitUrl: string } {
+  return { faceUrl: DEMO_FACE_URL, outfitUrl: DEMO_OUTFIT_URL };
 }
 
 export interface FixResult {
@@ -59,8 +75,9 @@ export async function applyFix(prev: AnalyzeResult): Promise<FixResult> {
   const suggestion = prev.score.suggestion;
   if (!suggestion) throw new Error("Nothing to fix: outfit already passes.");
 
-  const fal = getFalClient();
-  const youcam = getYouCamClient();
+  const demo = prev.demo ?? false;
+  const fal = createFalClient(demo);
+  const youcam = createYouCamClient(demo);
 
   const focus = prev.perception.garments[prev.perception.focusIndex];
   const category = focus.category as GarmentCategory;
@@ -109,8 +126,9 @@ export async function restyle(
   prev: AnalyzeResult,
   direction: StyleDirection,
 ): Promise<RestyleResult> {
-  const fal = getFalClient();
-  const youcam = getYouCamClient();
+  const demo = prev.demo ?? false;
+  const fal = createFalClient(demo);
+  const youcam = createYouCamClient(demo);
 
   const focus = prev.perception.garments[prev.perception.focusIndex];
   const plan = planRestyle(focus, direction, prev.season);

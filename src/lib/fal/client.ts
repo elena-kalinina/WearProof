@@ -112,6 +112,12 @@ export function getFalClient(): FalClient {
   return cached;
 }
 
+/** Per-request client; use `demo: true` for fixture data (e.g. "Use demo photos"). */
+export function createFalClient(demo = false): FalClient {
+  if (demo || !env.falKey) return new DemoFalClient();
+  return getFalClient();
+}
+
 function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
 }

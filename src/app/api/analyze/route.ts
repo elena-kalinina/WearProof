@@ -2,6 +2,10 @@ import { analyze, demoAnalyzeUrls } from "@/lib/pipeline";
 import { getFalClient } from "@/lib/fal/client";
 import { decodeDataUrl, hashKey } from "@/lib/image";
 import { cached } from "@/lib/cache";
+import {
+  DEFAULT_DEMO_SCENARIO,
+  type DemoScenarioId,
+} from "@/lib/demo/scenarios";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -9,18 +13,26 @@ export const maxDuration = 120;
 interface AnalyzeBody {
   faceImage?: string;
   outfitImage?: string;
-  /** Use recorded fixtures — works even when API keys are set. */
-  demo?: boolean;
+  /** Scripted demo story id, or `true` for default color-clash demo. */
+  demo?: boolean | DemoScenarioId;
+}
+
+function resolveDemoScenario(demo: AnalyzeBody["demo"]): DemoScenarioId | null {
+  if (!demo) return null;
+  if (demo === true) return DEFAULT_DEMO_SCENARIO;
+  if (demo === "color-clash" || demo === "garment-clash") return demo;
+  return DEFAULT_DEMO_SCENARIO;
 }
 
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as AnalyzeBody;
+    const scenarioId = resolveDemoScenario(body.demo);
 
-    if (body.demo) {
-      const { faceUrl, outfitUrl } = demoAnalyzeUrls();
-      const result = await cached("analyze:demo", () =>
-        analyze(faceUrl, outfitUrl, { demo: true }),
+    if (scenarioId) {
+      const { faceUrl, outfitUrl } = demoAnalyzeUrls(scenarioId);
+      const result = await cached(`analyze:demo:${scenarioId}`, () =>
+        analyze(faceUrl, outfitUrl, { demo: true, demoScenario: scenarioId }),
       );
       return Response.json(result);
     }

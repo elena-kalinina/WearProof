@@ -17,7 +17,7 @@ function req(body: unknown): Request {
 }
 
 async function main() {
-  const aRes = await analyzePOST(req({ demo: true }));
+  const aRes = await analyzePOST(req({ demo: "color-clash" }));
   if (aRes.status !== 200) {
     console.error("analyze status", aRes.status, await aRes.text());
     process.exit(1);

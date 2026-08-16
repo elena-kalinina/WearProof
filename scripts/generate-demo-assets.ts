@@ -1,6 +1,6 @@
 // One-time: generate photorealistic demo images via fal.ai and save to public/demo/.
 // Run: npm run generate:demo
-// Requires FAL_KEY in .env.local (uses ~3 flux/schnell generations).
+// Requires FAL_KEY in .env.local (uses ~5 flux/schnell generations).
 
 import { fal } from "@fal-ai/client";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -9,7 +9,7 @@ import path from "node:path";
 const OUT_DIR = path.join(process.cwd(), "public", "demo");
 const MODEL = "fal-ai/flux/schnell";
 
-const ASSETS: { file: string; prompt: string; image_size: string }[] = [
+const ASSETS: { file: string; prompt: string; image_size: "portrait_4_3" }[] = [
   {
     file: "face.jpg",
     image_size: "portrait_4_3",
@@ -17,16 +17,28 @@ const ASSETS: { file: string; prompt: string; image_size: string }[] = [
       "close-up portrait photo of a woman, warm tan skin tone, dark brown hair, brown eyes, soft natural window light, front facing, neutral expression, plain light gray background, realistic smartphone selfie style, entire face visible, eyes and forehead in frame",
   },
   {
-    file: "outfit-before.jpg",
+    file: "color-outfit-before.jpg",
     image_size: "portrait_4_3",
     prompt:
       "medium shot studio photo, camera pulled back, woman from top of head to waist, ENTIRE FACE fully visible with eyes forehead and chin, wearing a brick red fitted crew neck t-shirt, facing camera, arms relaxed at sides, plain light gray background, headroom above hair, realistic fashion photo, no cropping of head",
   },
   {
-    file: "outfit-after.jpg",
+    file: "color-outfit-after.jpg",
     image_size: "portrait_4_3",
     prompt:
       "medium shot studio photo, camera pulled back, same woman from top of head to waist, ENTIRE FACE fully visible with eyes forehead and chin, wearing a bright cyan blue fitted crew neck t-shirt, facing camera, arms relaxed at sides, plain light gray background, headroom above hair, realistic fashion photo, same pose as before, no cropping of head",
+  },
+  {
+    file: "garment-outfit-before.jpg",
+    image_size: "portrait_4_3",
+    prompt:
+      "medium shot studio photo, camera pulled back, woman with round soft face shape from top of head to waist, ENTIRE FACE fully visible, wearing a soft golden yellow fitted crew neck t-shirt, facing camera, arms relaxed, plain light gray background, headroom above hair, realistic fashion photo, crew neckline clearly visible",
+  },
+  {
+    file: "garment-outfit-after.jpg",
+    image_size: "portrait_4_3",
+    prompt:
+      "medium shot studio photo, camera pulled back, same woman from top of head to waist, ENTIRE FACE fully visible, wearing a soft golden yellow fitted v-neck t-shirt, v-neckline clearly visible, facing camera, arms relaxed, plain light gray background, headroom above hair, realistic fashion photo, same pose as before",
   },
 ];
 
@@ -38,7 +50,10 @@ async function download(url: string, dest: string) {
   console.log(`  saved ${dest} (${buf.length} bytes)`);
 }
 
-async function generate(prompt: string, image_size: string): Promise<string> {
+async function generate(
+  prompt: string,
+  image_size: "portrait_4_3",
+): Promise<string> {
   const result = await fal.subscribe(MODEL, {
     input: { prompt, image_size, num_images: 1 },
   });

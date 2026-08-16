@@ -1,6 +1,4 @@
-// Recorded YouCam response fixtures used in DEMO_MODE (no API key required).
-// Values mirror the real API shapes documented for face-attr-analysis and
-// skin-analysis (hd_redness ui_score example is 77 in the docs).
+// Recorded YouCam response fixtures used when no scenario is selected (legacy).
 
 import type { Hex } from "@/lib/types";
 
@@ -17,15 +15,5 @@ export const FACE_FIXTURE: {
 };
 
 export const SKIN_FIXTURE = {
-  redness: 77, // hd_redness ui_score from the docs example
+  redness: 77,
 };
-
-import { DEMO_ASSETS } from "@/lib/demo/assets";
-
-/**
- * In demo mode we can't run a real try-on, so we show a pre-generated
- * "after" outfit image that matches the fix narrative.
- */
-export function tryOnFixture(_refGarmentUrl: string): string {
-  return DEMO_ASSETS.outfitAfter;
-}

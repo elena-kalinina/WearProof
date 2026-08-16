@@ -7,8 +7,13 @@
 //  - DemoYouCamClient: serves recorded fixtures so the pipeline runs today.
 
 import { env, getYouCamBearerTokens } from "@/lib/env";
+import {
+  DEFAULT_DEMO_SCENARIO,
+  getDemoScenario,
+  type DemoScenarioId,
+} from "@/lib/demo/scenarios";
 import type { Hex } from "@/lib/types";
-import { FACE_FIXTURE, SKIN_FIXTURE, tryOnFixture } from "@/lib/youcam/fixtures";
+import { FACE_FIXTURE } from "@/lib/youcam/fixtures";
 import { spendUnits } from "@/lib/youcam/budget";
 
 export interface FaceAnalysis {
@@ -194,20 +199,30 @@ function extractRedness(data: TaskStatusResponse["data"]): number {
 // --- Demo client ---------------------------------------------------------
 
 class DemoYouCamClient implements YouCamClient {
+  constructor(private scenarioId: DemoScenarioId = DEFAULT_DEMO_SCENARIO) {}
+
   async analyzeFace(): Promise<FaceAnalysis> {
     await sleep(400);
-    return { ...FACE_FIXTURE };
+    const s = getDemoScenario(this.scenarioId);
+    return {
+      skinColor: s.face.skinColor,
+      hairColor: s.face.hairColor,
+      eyeColor: s.face.eyeColor,
+      faceShape: s.face.faceShape,
+    };
   }
   async analyzeSkin(): Promise<SkinAnalysis> {
     await sleep(400);
-    return { ...SKIN_FIXTURE };
+    return { ...getDemoScenario(this.scenarioId).skin };
   }
   async tryOn(
     _srcImageUrl: string,
-    refGarmentUrl: string,
+    _refGarmentUrl: string,
   ): Promise<TryOnResult> {
     await sleep(800);
-    return { resultUrl: tryOnFixture(refGarmentUrl) };
+    return {
+      resultUrl: getDemoScenario(this.scenarioId).assets.outfitAfter,
+    };
   }
 }
 
@@ -218,9 +233,12 @@ export function getYouCamClient(): YouCamClient {
   return cached;
 }
 
-/** Per-request client; use `demo: true` for fixture data (e.g. "Use demo photos"). */
-export function createYouCamClient(demo = false): YouCamClient {
-  if (demo || env.demoMode) return new DemoYouCamClient();
+/** Per-request client; pass demoScenario when using scripted demo stories. */
+export function createYouCamClient(
+  demo = false,
+  demoScenario: DemoScenarioId = DEFAULT_DEMO_SCENARIO,
+): YouCamClient {
+  if (demo || env.demoMode) return new DemoYouCamClient(demoScenario);
   return getYouCamClient();
 }
 

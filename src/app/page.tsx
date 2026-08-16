@@ -7,7 +7,11 @@ import { Uploader } from "@/components/Uploader";
 import { ScoreRing } from "@/components/ScoreRing";
 import { VerdictCard } from "@/components/VerdictCard";
 import { PaletteStrip } from "@/components/PaletteStrip";
-import { DEMO_ASSETS } from "@/lib/demo/assets";
+import {
+  DEMO_SCENARIOS,
+  getDemoScenario,
+  type DemoScenarioId,
+} from "@/lib/demo/scenarios";
 
 type Step = "capture" | "analyzing" | "results" | "fixing" | "fixed";
 
@@ -21,18 +25,36 @@ export default function Home() {
   const [styleLoading, setStyleLoading] = useState<StyleDirection | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function runAnalyze(faceImg: string, outfitImg: string, demo = false) {
+  async function runAnalyze(faceImg: string, outfitImg: string) {
     setError(null);
     setStep("analyzing");
     try {
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(
-          demo
-            ? { demo: true }
-            : { faceImage: faceImg, outfitImage: outfitImg },
-        ),
+        body: JSON.stringify({ faceImage: faceImg, outfitImage: outfitImg }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Analysis failed");
+      setResult(data as AnalyzeResult);
+      setStep("results");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Analysis failed");
+      setStep("capture");
+    }
+  }
+
+  async function runDemo(scenarioId: DemoScenarioId) {
+    setError(null);
+    setStep("analyzing");
+    const scenario = getDemoScenario(scenarioId);
+    setFace(scenario.assets.face);
+    setOutfit(scenario.assets.outfitBefore);
+    try {
+      const res = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ demo: scenarioId }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Analysis failed");
@@ -117,11 +139,7 @@ export default function Home() {
           setFace={setFace}
           setOutfit={setOutfit}
           onAnalyze={() => runAnalyze(face!, outfit!)}
-          onDemo={() => {
-            setFace(DEMO_ASSETS.face);
-            setOutfit(DEMO_ASSETS.outfitBefore);
-            runAnalyze("", "", true);
-          }}
+          onDemo={runDemo}
         />
       )}
 
@@ -157,7 +175,7 @@ function CaptureStep({
   setFace: (v: string) => void;
   setOutfit: (v: string) => void;
   onAnalyze: () => void;
-  onDemo: () => void;
+  onDemo: (scenarioId: DemoScenarioId) => void;
 }) {
   return (
     <div className="flex flex-col gap-6">
@@ -185,12 +203,23 @@ function CaptureStep({
         >
           Analyze my outfit
         </button>
-        <button
-          onClick={onDemo}
-          className="text-sm text-zinc-500 underline underline-offset-4 hover:text-zinc-700 dark:hover:text-zinc-300"
-        >
-          Use demo photos
-        </button>
+        <div className="flex w-full max-w-md flex-col gap-2 sm:flex-row sm:justify-center">
+          {(Object.values(DEMO_SCENARIOS) as typeof DEMO_SCENARIOS[DemoScenarioId][]).map(
+            (scenario) => (
+              <button
+                key={scenario.id}
+                type="button"
+                onClick={() => onDemo(scenario.id)}
+                className="rounded-full border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-800 transition-colors hover:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+              >
+                {scenario.label}
+              </button>
+            ),
+          )}
+        </div>
+        <p className="max-w-md text-center text-xs text-zinc-500">
+          Demos use scripted photos + fixtures — no API units spent.
+        </p>
       </div>
     </div>
   );
@@ -217,17 +246,21 @@ function ResultsStep({
 }) {
   const { season, score } = result;
   const shownScore = fix ? fix.newScore : score;
+  const demoFace =
+    result.demo && result.demoScenario
+      ? getDemoScenario(result.demoScenario).assets.face
+      : null;
 
   return (
     <div className="flex flex-col gap-8">
     <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
       {/* Left: imagery + season */}
       <div className="flex flex-col gap-5">
-        {result.demo && (
+        {result.demo && demoFace && (
           <figure className="flex flex-col gap-1">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={DEMO_ASSETS.face}
+              src={demoFace}
               alt="Face scan"
               className="w-full max-h-[220px] rounded-2xl object-cover object-top bg-zinc-100 dark:bg-zinc-800"
             />

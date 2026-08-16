@@ -132,7 +132,7 @@ export function scoreOutfit(
 
   const worstClash = verdicts.reduce((a, b) => (b.score < a.score ? b : a), verdicts[0]);
 
-  const suggestion = buildSuggestion(season, focus, worstClash, redness);
+  const suggestion = buildSuggestion(season, focus, worstClash, redness, profile.faceShape);
 
   return { overall, verdicts, worstClash, suggestion };
 }
@@ -173,19 +173,16 @@ function buildSuggestion(
   focus: Garment,
   worst: Verdict,
   redness: number,
+  faceShape?: string,
 ): FixSuggestion | null {
   if (worst.level === "pass") return null;
 
-  // When facial redness is high, exclude warm-reds from the candidate palette
-  // so the fix actually neutralizes redness rather than re-triggering it.
   const avoidWarmRed = redness >= REDNESS_THRESHOLD;
   const candidates = avoidWarmRed
     ? season.palette.filter((p) => !isWarmRed(p))
     : season.palette;
   const pool = candidates.length ? candidates : season.palette;
 
-  // Among candidates, pick the one closest in lightness to the current
-  // garment, so the fix changes hue/temperature but keeps a similar look.
   const gL = hexToLch(focus.color).L;
   let target = pool[0];
   let bestDiff = Infinity;
@@ -197,15 +194,23 @@ function buildSuggestion(
     }
   }
 
-  const descriptors = focus.descriptors.length
-    ? focus.descriptors.join(", ") + " "
-    : "";
-  const rednessNote = avoidWarmRed
-    ? "cooler redness-neutralizing tone, "
-    : "";
+  let descriptors = [...focus.descriptors];
+  if (worst.id === "neckline" && faceShape) {
+    const shape = faceShape.toLowerCase();
+    const betterNeck =
+      shape === "round" || shape === "square" ? "v-neck" : "scoop";
+    descriptors = descriptors.filter((d) => !/crew|v-?neck|scoop|neck/i.test(d));
+    descriptors.push(betterNeck);
+  }
+
+  const descriptorText = descriptors.length ? descriptors.join(", ") + " " : "";
+  const rednessNote = avoidWarmRed ? "cooler redness-neutralizing tone, " : "";
+  const necklineNote =
+    worst.id === "neckline" ? "better neckline for your face shape, " : "";
+
   return {
     targetColor: target,
-    description: `a ${descriptors}${focus.item} in a ${rednessNote}${season.season} palette tone (${target}), product photo on plain white background, front-facing, single garment`,
+    description: `a ${descriptorText}${focus.item} with ${necklineNote}${rednessNote}${season.season} palette tone (${target}), product photo on plain white background, front-facing, single garment`,
   };
 }
 

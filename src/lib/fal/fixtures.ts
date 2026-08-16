@@ -1,17 +1,4 @@
-// Demo outfit perception used when FAL_KEY is absent. A warm-red upper-body
-// top so the redness-adjacency rule fires against the (also demo) redness=77,
-// producing the flagship "coral amplifies redness" verdict.
+// Re-export color-clash perception for tests that import DEMO_PERCEPTION.
+import { getDemoScenario } from "@/lib/demo/scenarios";
 
-import type { OutfitPerception } from "@/lib/types";
-
-export const DEMO_PERCEPTION: OutfitPerception = {
-  garments: [
-    {
-      item: "top",
-      color: "#c0392b", // warm red
-      category: "upper_body",
-      descriptors: ["fitted", "crew"],
-    },
-  ],
-  focusIndex: 0,
-};
+export const DEMO_PERCEPTION = getDemoScenario("color-clash").perception;

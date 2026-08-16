@@ -5,8 +5,11 @@
 import { fal } from "@fal-ai/client";
 import { env } from "@/lib/env";
 import type { Hex, OutfitPerception } from "@/lib/types";
-import { DEMO_PERCEPTION } from "@/lib/fal/fixtures";
-import { DEMO_ASSETS } from "@/lib/demo/assets";
+import {
+  DEFAULT_DEMO_SCENARIO,
+  getDemoScenario,
+  type DemoScenarioId,
+} from "@/lib/demo/scenarios";
 
 export interface FalClient {
   uploadImage(bytes: Uint8Array, contentType: string): Promise<string>;
@@ -64,17 +67,18 @@ class RealFalClient implements FalClient {
 }
 
 class DemoFalClient implements FalClient {
+  constructor(private scenarioId: DemoScenarioId = DEFAULT_DEMO_SCENARIO) {}
+
   async uploadImage(): Promise<string> {
-    // Demo YouCam client ignores the URL; return a stable placeholder.
     return "https://demo.local/uploaded-image.jpg";
   }
   async perceiveOutfit(): Promise<OutfitPerception> {
     await sleep(500);
-    return structuredClone(DEMO_PERCEPTION);
+    return structuredClone(getDemoScenario(this.scenarioId).perception);
   }
   async generateGarment(_prompt: string, _hintColor?: Hex): Promise<string> {
     await sleep(700);
-    return DEMO_ASSETS.outfitAfter;
+    return getDemoScenario(this.scenarioId).assets.outfitAfter;
   }
 }
 
@@ -112,9 +116,12 @@ export function getFalClient(): FalClient {
   return cached;
 }
 
-/** Per-request client; use `demo: true` for fixture data (e.g. "Use demo photos"). */
-export function createFalClient(demo = false): FalClient {
-  if (demo || !env.falKey) return new DemoFalClient();
+/** Per-request client; pass demoScenario when using scripted demo stories. */
+export function createFalClient(
+  demo = false,
+  demoScenario: DemoScenarioId = DEFAULT_DEMO_SCENARIO,
+): FalClient {
+  if (demo || !env.falKey) return new DemoFalClient(demoScenario);
   return getFalClient();
 }
 
